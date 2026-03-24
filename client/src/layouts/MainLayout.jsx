@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 const MainLayout = () => {
   const { user, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isCreditsOpen, setIsCreditsOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -74,8 +75,59 @@ const MainLayout = () => {
       </main>
 
       <footer className="bg-dark-card border-t border-dark-border py-8 px-6 text-center text-dark-muted">
-        <p>&copy; 2026 GameHub Pro. All rights reserved.</p>
+        <div className="flex flex-col items-center gap-4">
+          <p>&copy; 2026 GameHub Pro. All rights reserved.</p>
+          <button 
+            onClick={() => setIsCreditsOpen(true)}
+            className="flex items-center gap-2 hover:text-primary transition-colors font-black text-xs uppercase tracking-widest"
+          >
+            <Shield size={14} className="text-secondary" /> Credits & Info
+          </button>
+        </div>
       </footer>
+
+      {isCreditsOpen && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-dark-bg/95 backdrop-blur-2xl animate-fadeIn">
+          <div className="card max-w-2xl w-full p-12 space-y-10 relative border-primary/20 shadow-primary/10">
+            <button onClick={() => setIsCreditsOpen(false)} className="absolute top-8 right-8 p-3 hover:bg-dark-input rounded-xl transition-colors">
+              <X size={24} />
+            </button>
+            
+            <div className="text-center space-y-4">
+              <h2 className="text-5xl font-black bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">VORTEX</h2>
+              <p className="text-dark-muted font-bold tracking-widest uppercase text-sm">Lead Developer & Creator</p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-10">
+              <div className="space-y-6">
+                <h4 className="text-xl font-black flex items-center gap-3"><Trophy className="text-warning" /> Project Info</h4>
+                <ul className="space-y-4 text-sm font-bold text-dark-muted">
+                  <li className="flex justify-between"><span>Version</span> <span className="text-dark-text">v2.8.0-Alpha</span></li>
+                  <li className="flex justify-between"><span>Status</span> <span className="text-success">Live & Stable</span></li>
+                  <li className="flex justify-between"><span>Region</span> <span className="text-dark-text">Global</span></li>
+                </ul>
+              </div>
+              <div className="space-y-6">
+                <h4 className="text-xl font-black flex items-center gap-3"><Gamepad2 className="text-primary" /> Tech Stack</h4>
+                <div className="flex flex-wrap gap-2">
+                  {['React', 'Vite', 'Node.js', 'Express', 'SQL', 'Socket.io', 'Tailwind'].map(tech => (
+                    <span key={tech} className="px-3 py-1 bg-dark-input rounded-lg text-[10px] font-black uppercase border border-dark-border">{tech}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-10 border-t border-dark-border text-center space-y-6">
+              <p className="text-dark-muted font-bold">Follow the development journey on social media</p>
+              <div className="flex justify-center gap-6">
+                {['Github', 'Discord', 'Twitter', 'Portfolio'].map(social => (
+                  <a key={social} href="#" className="btn btn-secondary px-6 py-2 text-[10px]">{social}</a>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -14,10 +14,12 @@ const Gameplay = lazy(() => import('./pages/Gameplay'));
 
 import ProtectedRoute from './components/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
+import ParticleBackground from './components/ParticleBackground';
 
 function App() {
   return (
     <ErrorBoundary>
+      <ParticleBackground />
       <Router>
         <Suspense fallback={<Loading />}>
           <Routes>

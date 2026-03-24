@@ -43,16 +43,16 @@ const Dashboard = () => {
           <h1 className="text-5xl font-black">Welcome back, {user.real_name || user.username}!</h1>
           <p className="text-xl text-dark-muted">Ready for another challenge? Your win streak is {user.win_streak || 0} games. Keep it going!</p>
           <div className="flex gap-4 pt-4">
-            <Link to="/games" className="btn btn-primary flex items-center gap-3 px-8">
+            <Link to="/games" className="btn btn-primary flex items-center gap-3 px-8 shadow-[0_0_20px_rgba(129,140,248,0.4)]">
               Play Now <Play size={18} fill="white" />
             </Link>
-            <Link to="/friends" className="btn btn-secondary flex items-center gap-3 px-8">
+            <Link to="/friends" className="btn btn-secondary flex items-center gap-3 px-8 hover:bg-primary/10">
               Challenge Friend <Users size={18} />
             </Link>
           </div>
         </div>
-        <div className="absolute right-12 top-1/2 -translate-y-1/2 hidden lg:block opacity-30 grayscale group-hover:grayscale-0 transition-all animate-float">
-          <Gamepad2 size={240} className="text-primary rotate-12" />
+        <div className="absolute right-12 top-1/2 -translate-y-1/2 hidden lg:block opacity-30 grayscale group-hover:grayscale-0 transition-all animate-float pointer-events-none">
+          <Gamepad2 size={240} className="text-primary rotate-12 drop-shadow-[0_0_30px_rgba(129,140,248,0.3)]" />
         </div>
       </section>
 

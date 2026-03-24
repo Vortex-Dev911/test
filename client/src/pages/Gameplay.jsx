@@ -1,7 +1,9 @@
-import React, { Suspense, lazy, useState } from 'react';
+import React, { Suspense, lazy, useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Trophy, Users, Info, Settings, Share2, History, MessageSquare, Gamepad2 } from 'lucide-react';
 import Loading from '../components/Loading';
+import GameOutcomeModal from '../components/GameOutcomeModal';
+import axios from 'axios';
 
 // Lazy load games
 const TicTacToe = lazy(() => import('../games/TicTacToe'));
@@ -19,6 +21,38 @@ const Gameplay = () => {
   const { gameId } = useParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('play');
+  const [outcome, setOutcome] = useState(null);
+  const gameRef = useRef(null);
+
+  useEffect(() => {
+    // Scroll to game area when loaded
+    if (activeTab === 'play' && gameRef.current) {
+      const rect = gameRef.current.getBoundingClientRect();
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      const targetY = rect.top + scrollTop - (window.innerHeight - rect.height) / 2;
+      
+      window.scrollTo({
+        top: targetY,
+        behavior: 'smooth'
+      });
+    }
+  }, [activeTab, gameId]);
+
+  const recordMatch = async (winner) => {
+    setOutcome(winner);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post('http://localhost:3000/api/games/record_match', {
+        game_id: gameId,
+        winner_id: winner === 'player' ? 'current_user' : null, // Backend handles real ID
+        mode: 'bot'
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+    } catch (err) {
+      console.error('Failed to record match:', err);
+    }
+  };
 
   const games = {
     tictactoe: { name: 'Tic Tac Toe', icon: '⭕', component: TicTacToe },
@@ -88,12 +122,20 @@ const Gameplay = () => {
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-12">
         <div className="xl:col-span-3 space-y-12">
           {activeTab === 'play' && (
-            <div className="card bg-dark-bg/50 border-dark-border/50 p-12 min-h-[70vh] flex items-center justify-center relative overflow-hidden">
+            <div ref={gameRef} className="card bg-dark-bg/50 border-dark-border/50 p-12 min-h-[70vh] flex items-center justify-center relative overflow-hidden transition-all duration-700">
               <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent -z-10"></div>
               <Suspense fallback={<Loading />}>
-                <GameComponent onWin={(winner) => console.log('Winner:', winner)} />
+                <GameComponent onWin={recordMatch} />
               </Suspense>
             </div>
+          )}
+
+          {outcome && (
+            <GameOutcomeModal 
+              winner={outcome} 
+              onPlayAgain={() => { setOutcome(null); window.location.reload(); }} 
+              onExit={() => navigate('/games')} 
+            />
           )}
 
           {activeTab === 'stats' && (
