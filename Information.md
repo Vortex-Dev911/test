@@ -84,3 +84,21 @@ All games are integrated via a standard interface:
 - **Port Conflicts**: Ensure port 3000 (Backend) and 5173/5175 (Frontend) are available.
 - **Database**: Run `knex migrate:latest` to apply schema changes.
 - **Sockets**: Check CORS settings in `server.js` if real-time features fail to connect.
+
+## Deployment (Vercel)
+
+The project is configured for a Vercel Monorepo deployment.
+
+### **Steps to Deploy:**
+1.  **Repository**: Push the entire project to a GitHub repository.
+2.  **Vercel Project**: Connect the repository to a new Vercel project.
+3.  **Root Directory**: Set the root directory to the project root (where `vercel.json` is located).
+4.  **Environment Variables**:
+    - `VITE_API_URL`: The URL of your deployed Vercel project (e.g., `https://your-gamehub.vercel.app`).
+    - `VITE_SOCKET_URL`: (Note: Socket.io is not supported on Vercel Serverless. For real-time features, deploy the `/server` directory to Render/Railway and provide that URL here).
+    - `DATABASE_URL`: If using a cloud database (PostgreSQL), provide the connection string here.
+5.  **Database**: Vercel does not support SQLite as it is read-only. For production, you **must** use a cloud SQL database (like Supabase, Neon, or PlanetScale) and update `server/db.js` accordingly.
+
+### **Vercel Limitations:**
+- **WebSockets**: Socket.io will not work on Vercel Serverless Functions. Real-time chat and game invitations require a dedicated server (Node.js/Express) or a service like Pusher.
+- **SQLite**: Filesystem is ephemeral. All database data will be lost on redeploy. Use a cloud database for persistence.

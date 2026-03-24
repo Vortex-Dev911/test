@@ -4,6 +4,7 @@ import { Users, UserPlus, MessageSquare, Search, Trophy, Check, Clock, Gamepad2 
 import { useAuth } from '../context/AuthContext';
 import { io } from 'socket.io-client';
 import { useNavigate } from 'react-router-dom';
+import { API_URL, SOCKET_URL } from '../utils/api';
 
 import Messaging from '../components/Messaging';
 
@@ -23,13 +24,13 @@ const Friends = () => {
   const challengeFriend = async (friendId, gameId = 'tictactoe') => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post('http://localhost:3000/api/games/challenge', { friendId, gameId }, {
+      const res = await axios.post(`${API_URL}/api/games/challenge`, { friendId, gameId }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const { roomId } = res.data;
       
       // Emit socket event
-      const socket = io('http://localhost:3000');
+      const socket = io(SOCKET_URL);
       socket.emit('challenge_player', { 
         challenger: user.username, 
         challenged: friends.find(f => f.id === friendId).username,
@@ -48,7 +49,7 @@ const Friends = () => {
   const fetchFriends = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:3000/api/friends/list', {
+      const res = await axios.get(`${API_URL}/api/friends/list`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setFriends(res.data);
@@ -67,7 +68,7 @@ const Friends = () => {
     }
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get(`http://localhost:3000/api/users/search?q=${query}`, {
+      const res = await axios.get(`${API_URL}/api/users/search?q=${query}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setSearchResults(res.data.filter(u => u.id !== user.id));
@@ -79,12 +80,12 @@ const Friends = () => {
   const sendFriendRequest = async (friendId) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:3000/api/friends/request', { friendId }, {
+      await axios.post(`${API_URL}/api/friends/request`, { friendId }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
       // Emit socket event for real-time notification
-      const socket = io('http://localhost:3000');
+      const socket = io(SOCKET_URL);
       socket.emit('friend_request', { 
         receiverId: friendId, 
         senderName: user.real_name || user.username 

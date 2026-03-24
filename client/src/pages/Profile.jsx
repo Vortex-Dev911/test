@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { User, Camera, Shield, Save, History, Trophy, Star } from 'lucide-react';
+import { API_URL } from '../utils/api';
 
 const Profile = () => {
   const { user, login } = useAuth();
@@ -18,7 +19,7 @@ const Profile = () => {
     const fetchHistory = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('http://localhost:3000/api/users/matches', {
+        const res = await axios.get(`${API_URL}/api/users/matches`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setMatches(res.data);
@@ -35,13 +36,13 @@ const Profile = () => {
     setMessage('');
     try {
       const token = localStorage.getItem('token');
-      await axios.put('http://localhost:3000/api/users/profile', formData, {
+      await axios.put(`${API_URL}/api/users/profile`, formData, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMessage('Profile updated successfully!');
       // Refresh user profile in context
       const userId = localStorage.getItem('userId');
-      const profileRes = await axios.get(`http://localhost:3000/api/users/profile/${userId}`, {
+      const profileRes = await axios.get(`${API_URL}/api/users/profile/${userId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       login({ ...profileRes.data, token });

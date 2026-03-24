@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Gamepad2, Users, Trophy, Play, Star, TrendingUp, History, Shield } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { API_URL } from '../utils/api';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -13,8 +14,8 @@ const Dashboard = () => {
     try {
       const token = localStorage.getItem('token');
       const [matchesRes, leaderboardRes] = await Promise.all([
-        axios.get('http://localhost:3000/api/users/matches', { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get('http://localhost:3000/api/users/leaderboard')
+        axios.get(`${API_URL}/api/users/matches`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API_URL}/api/users/leaderboard`)
       ]);
       setMatches(matchesRes.data);
       setLeaderboard(leaderboardRes.data);

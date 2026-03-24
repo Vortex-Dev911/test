@@ -4,6 +4,7 @@ import { User, Mail, Lock, Play, ChevronRight } from 'lucide-react';
 
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { API_URL } from '../utils/api';
 
 const Login = () => {
   const [formData, setFormData] = useState({ username: '', password: '' });
@@ -15,7 +16,7 @@ const Login = () => {
     e.preventDefault();
     setError('');
     try {
-        const res = await axios.post('http://localhost:3000/api/auth/login', formData);
+        const res = await axios.post(`${API_URL}/api/auth/login`, formData);
         login(res.data);
         navigate('/dashboard');
     } catch (err) {

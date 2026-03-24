@@ -5,6 +5,7 @@ import Loading from '../components/Loading';
 import GameOutcomeModal from '../components/GameOutcomeModal';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { API_URL } from '../utils/api';
 
 // Lazy load games
 const TicTacToe = lazy(() => import('../games/TicTacToe'));
@@ -45,7 +46,7 @@ const Gameplay = () => {
     try {
       const token = localStorage.getItem('token');
       const userId = localStorage.getItem('userId');
-      await axios.post('http://localhost:3000/api/games/record_match', {
+      await axios.post(`${API_URL}/api/games/record_match`, {
         game_id: gameId,
         p1_id: userId,
         p2_id: 'bot',

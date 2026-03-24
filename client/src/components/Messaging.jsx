@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Send, MessageSquare, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { io } from 'socket.io-client';
+import { API_URL, SOCKET_URL } from '../utils/api';
 
 const Messaging = ({ friend, onClose }) => {
     const { user } = useAuth();
@@ -17,7 +18,7 @@ const Messaging = ({ friend, onClose }) => {
     useEffect(() => {
         fetchMessages();
         
-        socketRef.current = io('http://localhost:3000');
+        socketRef.current = io(SOCKET_URL);
         socketRef.current.emit('join_chat', user.id);
 
         socketRef.current.on('receive_message', (message) => {
@@ -61,7 +62,7 @@ const Messaging = ({ friend, onClose }) => {
     const fetchMessages = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.get(`http://localhost:3000/api/messages/${friend.id}`, {
+            const res = await axios.get(`${API_URL}/api/messages/${friend.id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setMessages(res.data);
@@ -89,7 +90,7 @@ const Messaging = ({ friend, onClose }) => {
 
         try {
             const token = localStorage.getItem('token');
-            await axios.post('http://localhost:3000/api/messages/send', {
+            await axios.post(`${API_URL}/api/messages/send`, {
                 receiverId: friend.id,
                 content: newMessage
             }, {

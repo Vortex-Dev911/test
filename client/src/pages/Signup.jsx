@@ -4,6 +4,7 @@ import { User, Mail, Lock, Play, ChevronRight, Check, X } from 'lucide-react';
 
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { API_URL } from '../utils/api';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -21,7 +22,7 @@ const Signup = () => {
     e.preventDefault();
     setError('');
     try {
-        const res = await axios.post('http://localhost:3000/api/auth/signup', formData);
+        const res = await axios.post(`${API_URL}/api/auth/signup`, formData);
         login(res.data);
         navigate('/dashboard');
     } catch (err) {

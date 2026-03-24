@@ -36,20 +36,27 @@ app.use('/api/friends', friendsRoutes);
 app.use('/api/messages', messagesRoutes);
 
 // Socket.io
-require('./sockets')(io);
+if (process.env.NODE_ENV !== 'production') {
+    require('./sockets')(io);
+}
 
-// Database migration check
-db.migrate.latest()
-    .then(() => {
-        console.log('Database migrated successfully');
-        server.listen(PORT, () => {
-            console.log(`Server is running on port ${PORT}`);
+// Database migration check (Only in local dev)
+if (process.env.NODE_ENV !== 'production') {
+    db.migrate.latest()
+        .then(() => {
+            console.log('Database migrated successfully');
+            server.listen(PORT, () => {
+                console.log(`Server is running on port ${PORT}`);
+            });
+        })
+        .catch(err => {
+            console.error('Database migration failed:', err);
+            process.exit(1);
         });
-    })
-    .catch(err => {
-        console.error('Database migration failed:', err);
-        process.exit(1);
-    });
+}
+
+// Export app for Vercel
+module.exports = server;
 
 // Error handling middleware
 app.use((err, req, res, next) => {
