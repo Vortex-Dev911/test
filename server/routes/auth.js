@@ -14,7 +14,8 @@ router.post('/signup', async (req, res) => {
             username,
             email,
             password: hashedPassword,
-            real_name: realName
+            real_name: realName,
+            xp: 100 // Initialize with base score of 100 points
         });
         
         await db('user_stats').insert({ user_id: userId });

@@ -89,9 +89,11 @@ const Poker = ({ onWin }) => {
       if (onWin) onWin('player');
     } else if (pScore < bScore) {
       setResult('Bot Wins!');
+      if (onWin) onWin('bot');
     } else {
       setResult('Split Pot!');
       setChips(prev => prev + currentBet);
+      if (onWin) onWin('draw');
     }
     setCurrentBet(0);
   };

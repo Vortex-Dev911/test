@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 
-const Pong = () => {
+const Pong = ({ onWin }) => {
   const CANVAS_WIDTH = 600;
   const CANVAS_HEIGHT = 400;
   const PADDLE_WIDTH = 10;
@@ -8,11 +8,13 @@ const Pong = () => {
   const BALL_SIZE = 10;
   const PADDLE_SPEED = 10;
   const BALL_SPEED = 5;
+  const WINNING_SCORE = 5;
 
   const [paddle1Y, setPaddle1Y] = useState(CANVAS_HEIGHT / 2 - PADDLE_HEIGHT / 2);
   const [paddle2Y, setPaddle2Y] = useState(CANVAS_HEIGHT / 2 - PADDLE_HEIGHT / 2);
   const [ball, setBall] = useState({ x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2, dx: BALL_SPEED, dy: BALL_SPEED });
   const [scores, setScores] = useState({ p1: 0, p2: 0 });
+  const [gameOver, setGameOver] = useState(false);
   const canvasRef = useRef(null);
 
   const resetBall = (direction) => {
@@ -20,6 +22,8 @@ const Pong = () => {
   };
 
   const moveBall = useCallback(() => {
+    if (gameOver) return;
+
     let newBall = { ...ball };
     newBall.x += newBall.dx;
     newBall.y += newBall.dy;
@@ -39,13 +43,25 @@ const Pong = () => {
 
     // Scoring
     if (newBall.x < 0) {
-      setScores(s => ({ ...s, p2: s.p2 + 1 }));
-      resetBall(1);
+      const newScore = scores.p2 + 1;
+      setScores(s => ({ ...s, p2: newScore }));
+      if (newScore >= WINNING_SCORE) {
+        setGameOver(true);
+        if (onWin) onWin('bot');
+      } else {
+        resetBall(1);
+      }
       return;
     }
     if (newBall.x > CANVAS_WIDTH) {
-      setScores(s => ({ ...s, p1: s.p1 + 1 }));
-      resetBall(-1);
+      const newScore = scores.p1 + 1;
+      setScores(s => ({ ...s, p1: newScore }));
+      if (newScore >= WINNING_SCORE) {
+        setGameOver(true);
+        if (onWin) onWin('player');
+      } else {
+        resetBall(-1);
+      }
       return;
     }
 
@@ -53,11 +69,11 @@ const Pong = () => {
     setPaddle2Y(prev => {
         const targetY = newBall.y - PADDLE_HEIGHT / 2;
         const diff = targetY - prev;
-        return Math.max(0, Math.min(CANVAS_HEIGHT - PADDLE_HEIGHT, prev + diff * 0.1));
+        return Math.max(0, Math.min(CANVAS_HEIGHT - PADDLE_HEIGHT, prev + diff * 0.15));
     });
 
     setBall(newBall);
-  }, [ball, paddle1Y, paddle2Y]);
+  }, [ball, paddle1Y, paddle2Y, scores, gameOver, onWin]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -94,6 +110,12 @@ const Pong = () => {
     ctx.stroke();
   }, [ball, paddle1Y, paddle2Y]);
 
+  const reset = () => {
+    setScores({ p1: 0, p2: 0 });
+    setGameOver(false);
+    resetBall(1);
+  };
+
   return (
     <div className="flex flex-col items-center gap-6">
       <div className="flex gap-12 text-5xl font-black">
@@ -101,7 +123,17 @@ const Pong = () => {
         <span className="text-dark-muted">:</span>
         <span className="text-secondary">{scores.p2}</span>
       </div>
-      <canvas ref={canvasRef} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} className="border-4 border-dark-border rounded-2xl bg-dark-bg shadow-2xl" />
+      <div className="relative">
+        <canvas ref={canvasRef} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} className="border-4 border-dark-border rounded-2xl bg-dark-bg shadow-2xl" />
+        {gameOver && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-dark-bg/80 backdrop-blur-sm rounded-2xl z-10 space-y-6">
+            <h2 className={`text-5xl font-black ${scores.p1 >= WINNING_SCORE ? 'text-success' : 'text-error'}`}>
+              {scores.p1 >= WINNING_SCORE ? 'VICTORY' : 'DEFEAT'}
+            </h2>
+            <button onClick={reset} className="btn btn-primary px-10">Play Again</button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -11,6 +11,7 @@ const Games = lazy(() => import('./pages/Games'));
 const Leaderboard = lazy(() => import('./pages/Leaderboard'));
 const Friends = lazy(() => import('./pages/Friends'));
 const Gameplay = lazy(() => import('./pages/Gameplay'));
+const Profile = lazy(() => import('./pages/Profile'));
 
 import ProtectedRoute from './components/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -35,6 +36,7 @@ function App() {
               <Route path="/games" element={<Games />} />
               <Route path="/leaderboard" element={<Leaderboard />} />
               <Route path="/friends" element={<Friends />} />
+              <Route path="/profile" element={<Profile />} />
               <Route path="/play/:gameId" element={<Gameplay />} />
             </Route>
           </Routes>

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
+const { authenticateToken } = require('../middlewares/auth');
 
 router.get('/search', async (req, res) => {
     const { q } = req.query;
@@ -31,7 +32,24 @@ router.get('/profile/:userId', async (req, res) => {
     }
 });
 
-router.get('/matches', async (req, res) => {
+router.put('/profile', authenticateToken, async (req, res) => {
+    const { realName, avatarUrl, isPrivate } = req.body;
+    const userId = req.user.userId;
+    try {
+        await db('users')
+            .where({ id: userId })
+            .update({ 
+                real_name: realName, 
+                avatar_url: avatarUrl, 
+                is_private: isPrivate 
+            });
+        res.json({ message: 'Profile updated successfully' });
+    } catch (err) {
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+router.get('/matches', authenticateToken, async (req, res) => {
     try {
         const matches = await db('match_history')
             .where('p1_id', req.user.userId)

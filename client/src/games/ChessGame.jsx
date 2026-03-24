@@ -11,58 +11,69 @@ const ChessGame = ({ onWin }) => {
 
   const makeAMove = useCallback((move) => {
     try {
-      const result = game.move(move);
-      setGame(new Chess(game.fen()));
-      setMoveHistory(game.history());
-      return result;
-    } catch (e) {
+      const gameCopy = new Chess(game.fen());
+      const result = gameCopy.move(move);
+      
+      if (result) {
+        setGame(gameCopy);
+        setMoveHistory(gameCopy.history());
+        return result;
+      }
+      return null;
+    } catch (error) {
       return null;
     }
   }, [game]);
 
-  const onDrop = (sourceSquare, targetSquare) => {
+  function onDrop(sourceSquare, targetSquare) {
+    if (gameOver || game.turn() === 'b') return false;
+
     const move = makeAMove({
       from: sourceSquare,
       to: targetSquare,
-      promotion: 'q', // always promote to queen for simplicity
+      promotion: "q",
     });
 
     if (move === null) return false;
     return true;
-  };
+  }
+
+  const checkGameOver = useCallback(() => {
+    if (game.isGameOver() && !gameOver) {
+      setGameOver(true);
+      if (game.isCheckmate()) {
+        const winner = game.turn() === 'w' ? 'bot' : 'player';
+        setStatus(`Checkmate! ${winner === 'player' ? 'You' : 'Bot'} Wins`);
+        if (onWin) onWin(winner);
+      } else if (game.isDraw()) {
+        setStatus("Draw!");
+        if (onWin) onWin('draw');
+      } else {
+        setStatus("Game Over");
+        if (onWin) onWin('draw');
+      }
+    }
+  }, [game, gameOver, onWin]);
 
   useEffect(() => {
-    if (game.isGameOver()) {
-      // Use a local flag or check state before setting to avoid cascading renders
-      if (!gameOver) {
-        setGameOver(true);
-        if (game.isCheckmate()) {
-          const winner = game.turn() === 'w' ? 'Black' : 'White';
-          setStatus(`Checkmate! ${winner} Wins`);
-          if (onWin) onWin(winner);
-        } else if (game.isDraw()) {
-          setStatus("Draw!");
-        } else {
-          setStatus("Game Over");
-        }
-      }
-    } else {
-      const turnStatus = game.turn() === 'w' ? "White's Turn" : "Black's Turn";
+    checkGameOver();
+    
+    if (!game.isGameOver()) {
+      const turnStatus = game.turn() === 'w' ? "Your Turn" : "Bot is thinking...";
       if (status !== turnStatus) setStatus(turnStatus);
       
-      // Basic Random Bot for Black
-      if (game.turn() === 'b') {
+      if (game.turn() === 'b' && !gameOver) {
         const timer = setTimeout(() => {
           const moves = game.moves();
           if (moves.length > 0) {
             const randomMove = moves[Math.floor(Math.random() * moves.length)];
             makeAMove(randomMove);
           }
-        }, 500);
+        }, 800);
         return () => clearTimeout(timer);
       }
     }
-  }, [game, makeAMove, onWin, gameOver, status]);
+  }, [game, makeAMove, gameOver, checkGameOver]);
 
   const resetGame = () => {
     const newGame = new Chess();

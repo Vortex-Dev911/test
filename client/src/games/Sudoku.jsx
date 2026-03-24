@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
-const Sudoku = () => {
+const Sudoku = ({ onWin }) => {
   const INITIAL_BOARD = [
     [5, 3, 0, 0, 7, 0, 0, 0, 0],
     [6, 0, 0, 1, 9, 5, 0, 0, 0],
@@ -13,8 +13,21 @@ const Sudoku = () => {
     [0, 0, 0, 0, 8, 0, 0, 7, 9]
   ];
 
+  const SOLUTION = [
+    [5, 3, 4, 6, 7, 8, 9, 1, 2],
+    [6, 7, 2, 1, 9, 5, 3, 4, 8],
+    [1, 9, 8, 3, 4, 2, 5, 6, 7],
+    [8, 5, 9, 7, 6, 1, 4, 2, 3],
+    [4, 2, 6, 8, 5, 3, 7, 9, 1],
+    [7, 1, 3, 9, 2, 4, 8, 5, 6],
+    [9, 6, 1, 5, 3, 7, 2, 8, 4],
+    [2, 8, 7, 4, 1, 9, 6, 3, 5],
+    [3, 4, 5, 2, 8, 6, 1, 7, 9]
+  ];
+
   const [grid, setGrid] = useState(INITIAL_BOARD);
   const [selected, setSelected] = useState(null);
+  const [errors, setErrors] = useState(0);
 
   const handleCellClick = (r, c) => {
     if (INITIAL_BOARD[r][c] !== 0) return;
@@ -24,10 +37,19 @@ const Sudoku = () => {
   const handleNumberInput = useCallback((num) => {
     if (!selected) return;
     const [r, c] = selected;
+    if (num !== 0 && num !== SOLUTION[r][c]) {
+      setErrors(e => e + 1);
+      return;
+    }
     const newGrid = grid.map(row => [...row]);
     newGrid[r][c] = num;
     setGrid(newGrid);
-  }, [selected, grid]);
+
+    // Check win
+    if (newGrid.every((row, ri) => row.every((cell, ci) => cell === SOLUTION[ri][ci]))) {
+      if (onWin) onWin('player');
+    }
+  }, [selected, grid, onWin]);
 
   useEffect(() => {
     const handleKey = (e) => {
@@ -42,10 +64,14 @@ const Sudoku = () => {
   const reset = () => {
     setGrid(INITIAL_BOARD);
     setSelected(null);
+    setErrors(0);
   };
 
   return (
     <div className="flex flex-col items-center gap-12 animate-fadeInUp">
+      <div className="flex gap-12 text-2xl font-black">
+        <span className="text-error">Errors: {errors}</span>
+      </div>
       <div className="grid grid-cols-9 border-4 border-dark-border bg-dark-input rounded-xl overflow-hidden shadow-2xl">
         {grid.map((row, r) => (
           row.map((cell, c) => (

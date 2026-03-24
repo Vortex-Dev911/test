@@ -42,7 +42,9 @@ const RockPaperScissors = ({ onWin }) => {
         if (onWin) onWin('player');
       } else if (result === 'Opponent') {
         setScores(prev => ({ ...prev, opponent: prev.opponent + 1 }));
-        if (onWin) onWin('opponent');
+        if (onWin) onWin('bot');
+      } else {
+        if (onWin) onWin('draw');
       }
       
       setIsAnimating(false);

@@ -17,6 +17,9 @@ const Games = () => {
     { id: 'trivia', name: 'Trivia Quiz', icon: <Grid className="text-secondary" />, desc: 'Test your knowledge against others', category: 'puzzle', new: true },
     { id: 'poker', name: 'Poker', icon: <Clover className="text-success" />, desc: 'High stakes Texas Hold\'em poker', category: 'cards' },
     { id: 'sudoku', name: 'Sudoku', icon: <Grid className="text-primary" />, desc: 'Solve complex number puzzles', category: 'puzzle', new: true },
+    { id: 'uno', name: 'UNO', icon: <div className="text-4xl">🎨</div>, desc: 'Classic color and number matching card game', category: 'cards', new: true },
+    { id: 'pool', name: '8-Ball Pool', icon: <div className="text-4xl">🎱</div>, desc: 'Precision physics-based pool simulator', category: 'action', hot: true },
+    { id: 'darts', name: 'Darts', icon: <div className="text-4xl">🎯</div>, desc: 'Test your aim in this classic pub game', category: 'action' },
   ];
 
   const filteredGames = games.filter(g => 

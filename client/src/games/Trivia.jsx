@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const Trivia = () => {
+const Trivia = ({ onWin }) => {
   const QUESTIONS = [
     { q: "What is the capital of France?", options: ["Paris", "London", "Berlin", "Madrid"], a: 0 },
     { q: "Which planet is known as the Red Planet?", options: ["Earth", "Mars", "Jupiter", "Venus"], a: 1 },
@@ -19,7 +19,11 @@ const Trivia = () => {
 
   const handleAnswer = (index) => {
     setSelected(index);
-    if (index === QUESTIONS[current].a) setScore(score + 1);
+    let newScore = score;
+    if (index === QUESTIONS[current].a) {
+      newScore = score + 1;
+      setScore(newScore);
+    }
 
     setTimeout(() => {
       const next = current + 1;
@@ -28,6 +32,11 @@ const Trivia = () => {
         setSelected(null);
       } else {
         setShowScore(true);
+        if (onWin) {
+          if (newScore >= 6) onWin('player');
+          else if (newScore >= 3) onWin('draw');
+          else onWin('bot');
+        }
       }
     }, 1000);
   };

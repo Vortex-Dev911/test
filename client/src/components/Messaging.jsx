@@ -9,8 +9,10 @@ const Messaging = ({ friend, onClose }) => {
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [loading, setLoading] = useState(true);
+    const [isOpponentTyping, setIsOpponentTyping] = useState(false);
     const scrollRef = useRef();
     const socketRef = useRef();
+    const typingTimeoutRef = useRef();
 
     useEffect(() => {
         fetchMessages();
@@ -21,7 +23,18 @@ const Messaging = ({ friend, onClose }) => {
         socketRef.current.on('receive_message', (message) => {
             if (message.sender_id === friend.id) {
                 setMessages(prev => [...prev, message]);
+                socketRef.current.emit('message_read', { senderId: friend.id, receiverId: user.id });
             }
+        });
+
+        socketRef.current.on('opponent_typing', (data) => {
+            setIsOpponentTyping(data.isTyping);
+        });
+
+        socketRef.current.on('message_status_update', (data) => {
+            setMessages(prev => prev.map(m => 
+                (m.sender_id === user.id && m.receiver_id === data.senderId) ? { ...m, is_read: true } : m
+            ));
         });
 
         return () => {
@@ -31,7 +44,19 @@ const Messaging = ({ friend, onClose }) => {
 
     useEffect(() => {
         scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
+    }, [messages, isOpponentTyping]);
+
+    const handleTyping = (e) => {
+        setNewMessage(e.target.value);
+        
+        socketRef.current.emit('typing', { receiverId: friend.id, isTyping: true });
+        
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+        
+        typingTimeoutRef.current = setTimeout(() => {
+            socketRef.current.emit('typing', { receiverId: friend.id, isTyping: false });
+        }, 2000);
+    };
 
     const fetchMessages = async () => {
         try {
@@ -106,17 +131,31 @@ const Messaging = ({ friend, onClose }) => {
                         <p className="font-bold">No messages yet. Start the conversation!</p>
                     </div>
                 ) : (
-                    messages.map((msg, i) => (
-                        <div key={i} className={`flex ${msg.sender_id === user.id ? 'justify-end' : 'justify-start'}`}>
-                            <div className={`max-w-[80%] p-4 rounded-2xl font-medium text-sm shadow-lg
-                                ${msg.sender_id === user.id 
-                                    ? 'bg-primary text-white rounded-tr-none' 
-                                    : 'bg-dark-input text-dark-text rounded-tl-none'}`}
-                            >
-                                {msg.content}
+                    <>
+                        {messages.map((msg, i) => (
+                            <div key={i} className={`flex flex-col ${msg.sender_id === user.id ? 'items-end' : 'items-start'}`}>
+                                <div className={`max-w-[80%] p-4 rounded-2xl font-medium text-sm shadow-lg
+                                    ${msg.sender_id === user.id 
+                                        ? 'bg-primary text-white rounded-tr-none' 
+                                        : 'bg-dark-input text-dark-text rounded-tl-none'}`}
+                                >
+                                    {msg.content}
+                                </div>
+                                {msg.sender_id === user.id && (
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-dark-muted mt-1 px-1">
+                                        {msg.is_read ? 'Read' : 'Sent'}
+                                    </span>
+                                )}
                             </div>
-                        </div>
-                    ))
+                        ))}
+                        {isOpponentTyping && (
+                            <div className="flex justify-start">
+                                <div className="bg-dark-input text-dark-muted px-4 py-2 rounded-2xl rounded-tl-none text-xs font-black animate-pulse">
+                                    {friend.username} is typing...
+                                </div>
+                            </div>
+                        )}
+                    </>
                 )}
                 <div ref={scrollRef} />
             </div>
@@ -128,7 +167,7 @@ const Messaging = ({ friend, onClose }) => {
                     className="input py-3"
                     placeholder="Type a message..."
                     value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
+                    onChange={handleTyping}
                 />
                 <button type="submit" className="btn btn-primary px-6 py-3">
                     <Send size={20} />

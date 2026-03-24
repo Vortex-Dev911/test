@@ -36,6 +36,24 @@ module.exports = (io) => {
             io.to(`user_${receiverId}`).emit('receive_message', data);
         });
 
+        socket.on('typing', (data) => {
+            const { receiverId, isTyping } = data;
+            socket.to(`user_${receiverId}`).emit('opponent_typing', { isTyping });
+        });
+
+        socket.on('friend_request', (data) => {
+            const { receiverId, senderName } = data;
+            io.to(`user_${receiverId}`).emit('notification', { 
+                type: 'friend_request', 
+                message: `${senderName} sent you a friend request!` 
+            });
+        });
+
+        socket.on('message_read', (data) => {
+            const { senderId, receiverId } = data;
+            io.to(`user_${senderId}`).emit('message_status_update', { senderId: receiverId, status: 'read' });
+        });
+
         // Game Challenges
         socket.on('challenge_player', (data) => {
             const { challenger, challenged, gameId } = data;

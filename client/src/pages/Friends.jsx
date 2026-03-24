@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Users, UserPlus, MessageSquare, Search, Trophy, Check, Clock } from 'lucide-react';
+import { Users, UserPlus, MessageSquare, Search, Trophy, Check, Clock, Gamepad2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { io } from 'socket.io-client';
+import { useNavigate } from 'react-router-dom';
 
 import Messaging from '../components/Messaging';
 
@@ -12,10 +14,36 @@ const Friends = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeChat, setActiveChat] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchFriends();
   }, []);
+
+  const challengeFriend = async (friendId, gameId = 'tictactoe') => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.post('http://localhost:3000/api/games/challenge', { friendId, gameId }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const { roomId } = res.data;
+      
+      // Emit socket event
+      const socket = io('http://localhost:3000');
+      socket.emit('challenge_player', { 
+        challenger: user.username, 
+        challenged: friends.find(f => f.id === friendId).username,
+        gameId,
+        roomId
+      });
+      socket.disconnect();
+
+      navigate(`/play/${gameId}?room=${roomId}`);
+    } catch (err) {
+      console.error('Challenge error:', err);
+      alert('Failed to send challenge');
+    }
+  };
 
   const fetchFriends = async () => {
     try {
@@ -54,6 +82,15 @@ const Friends = () => {
       await axios.post('http://localhost:3000/api/friends/request', { friendId }, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      
+      // Emit socket event for real-time notification
+      const socket = io('http://localhost:3000');
+      socket.emit('friend_request', { 
+        receiverId: friendId, 
+        senderName: user.real_name || user.username 
+      });
+      socket.disconnect();
+
       alert('Friend request sent!');
     } catch (err) {
       alert(err.response?.data?.error || 'Failed to send request');
@@ -136,7 +173,10 @@ const Friends = () => {
                     >
                       <MessageSquare size={16} /> Chat
                     </button>
-                    <button className="btn btn-secondary p-3">
+                    <button 
+                      onClick={() => challengeFriend(friend.id)}
+                      className="btn btn-secondary p-3 hover:bg-warning/20 hover:text-warning transition-colors"
+                    >
                       <Gamepad2 size={18} />
                     </button>
                   </div>

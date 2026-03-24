@@ -47,8 +47,12 @@ const Connect4 = ({ onWin }) => {
                 const winResult = checkWinner(newBoard);
                 if (winResult) {
                     setWinner(winResult);
+                    const winnerType = winResult === 'Red' ? 'player' : 'bot';
                     setScores(prev => ({ ...prev, [winResult.toLowerCase()]: prev[winResult.toLowerCase()] + 1 }));
-                    if (onWin) onWin(winResult);
+                    if (onWin) onWin(winnerType);
+                } else if (newBoard.every(row => row.every(cell => cell !== null))) {
+                    setWinner('Draw');
+                    if (onWin) onWin('draw');
                 } else {
                     setIsRedNext(!isRedNext);
                 }
@@ -56,6 +60,24 @@ const Connect4 = ({ onWin }) => {
             }
         }
     };
+
+    useEffect(() => {
+        if (!isRedNext && !winner) {
+            const timer = setTimeout(() => {
+                // Find available columns
+                const availableCols = [];
+                for (let c = 0; c < COLS; c++) {
+                    if (!board[0][c]) availableCols.push(c);
+                }
+                
+                if (availableCols.length > 0) {
+                    const randomCol = availableCols[Math.floor(Math.random() * availableCols.length)];
+                    dropPiece(randomCol);
+                }
+            }, 800);
+            return () => clearTimeout(timer);
+        }
+    }, [isRedNext, winner, board]);
 
     const resetGame = () => {
         setBoard(Array(ROWS).fill(null).map(() => Array(COLS).fill(null)));

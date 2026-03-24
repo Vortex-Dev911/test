@@ -32,6 +32,8 @@ const Dashboard = () => {
     return () => { isMounted = false; };
   }, [fetchData]);
 
+  if (!user) return null;
+
   return (
     <div className="space-y-12 animate-fadeInUp">
       {/* Welcome Banner */}

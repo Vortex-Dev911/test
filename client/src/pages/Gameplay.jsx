@@ -4,6 +4,7 @@ import { ChevronLeft, Trophy, Users, Info, Settings, Share2, History, MessageSqu
 import Loading from '../components/Loading';
 import GameOutcomeModal from '../components/GameOutcomeModal';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
 // Lazy load games
 const TicTacToe = lazy(() => import('../games/TicTacToe'));
@@ -20,6 +21,7 @@ const Poker = lazy(() => import('../games/Poker'));
 const Gameplay = () => {
   const { gameId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('play');
   const [outcome, setOutcome] = useState(null);
   const gameRef = useRef(null);
@@ -42,10 +44,12 @@ const Gameplay = () => {
     setOutcome(winner);
     try {
       const token = localStorage.getItem('token');
+      const userId = localStorage.getItem('userId');
       await axios.post('http://localhost:3000/api/games/record_match', {
         game_id: gameId,
-        winner_id: winner === 'player' ? 'current_user' : null, // Backend handles real ID
-        mode: 'bot'
+        p1_id: userId,
+        p2_id: 'bot',
+        winner_id: winner // 'player', 'bot', or 'draw'
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -122,7 +126,7 @@ const Gameplay = () => {
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-12">
         <div className="xl:col-span-3 space-y-12">
           {activeTab === 'play' && (
-            <div ref={gameRef} className="card bg-dark-bg/50 border-dark-border/50 p-12 min-h-[70vh] flex items-center justify-center relative overflow-hidden transition-all duration-700">
+            <div ref={gameRef} className="card bg-dark-bg/50 border-dark-border/50 p-12 min-h-[70vh] flex items-center justify-center relative overflow-hidden transition-all duration-1000 animate-fadeInScale">
               <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent -z-10"></div>
               <Suspense fallback={<Loading />}>
                 <GameComponent onWin={recordMatch} />
@@ -179,8 +183,27 @@ const Gameplay = () => {
               Rules of {game.name} are simple. Compete against the bot or challenge a friend to a live match. 
               Winning a match rewards you with 25 XP and boosts your global rank.
             </p>
+            
+            <div className="space-y-4 pt-4 border-t border-dark-border/50">
+              <label className="label">Difficulty</label>
+              <div className="flex gap-2">
+                {['Easy', 'Medium', 'Hard'].map(level => (
+                  <button key={level} className="flex-1 py-2 bg-dark-input rounded-xl text-[10px] font-black uppercase hover:bg-primary/20 hover:text-primary transition-colors">
+                    {level}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="flex gap-4 pt-4">
-              <button className="flex-1 btn btn-secondary py-3 text-sm flex items-center justify-center gap-2">
+              <button 
+                onClick={() => {
+                  const link = `${window.location.origin}/play/${gameId}?room=public_${user.id}`;
+                  navigator.clipboard.writeText(link);
+                  alert('Invite link copied to clipboard!');
+                }}
+                className="flex-1 btn btn-secondary py-3 text-sm flex items-center justify-center gap-2"
+              >
                 <Share2 size={16} /> Share
               </button>
               <button className="p-3 bg-dark-input hover:bg-dark-border rounded-xl transition-colors border border-dark-border">

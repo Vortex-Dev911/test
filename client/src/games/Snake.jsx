@@ -24,12 +24,14 @@ const Snake = ({ onWin }) => {
     // Wall collision
     if (head[0] < 0 || head[0] >= CANVAS_SIZE / GRID_SIZE || head[1] < 0 || head[1] >= CANVAS_SIZE / GRID_SIZE) {
       setGameOver(true);
+      if (onWin) onWin(score > 50 ? 'player' : 'bot');
       return;
     }
 
     // Self collision
     if (newSnake.some(segment => segment[0] === head[0] && segment[1] === head[1])) {
       setGameOver(true);
+      if (onWin) onWin(score > 50 ? 'player' : 'bot');
       return;
     }
 

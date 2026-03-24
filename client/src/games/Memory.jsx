@@ -1,38 +1,57 @@
 import React, { useState, useEffect } from 'react';
 
-const Memory = () => {
+const Memory = ({ onWin }) => {
   const ICONS = ['🎮', '🕹️', '🎲', '🧩', '🎯', '♟️', '🏓', '🎱'];
   const [cards, setCards] = useState([]);
   const [flipped, setFlipped] = useState([]);
   const [solved, setSolved] = useState([]);
   const [moves, setMoves] = useState(0);
+  const [gameOver, setGameOver] = useState(false);
 
   useEffect(() => {
     initializeGame();
   }, []);
 
   const initializeGame = () => {
-    const deck = [...ICONS, ...ICONS]
-      .sort(() => Math.random() - 0.5)
-      .map((icon, index) => ({ id: index, icon }));
+    const deck = [];
+    const pairedIcons = [...ICONS, ...ICONS];
+    // Shuffle
+    for (let i = pairedIcons.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pairedIcons[i], pairedIcons[j]] = [pairedIcons[j], pairedIcons[i]];
+    }
+    
+    pairedIcons.forEach((icon, index) => {
+      deck.push({ id: index, icon });
+    });
+
     setCards(deck);
     setFlipped([]);
     setSolved([]);
     setMoves(0);
+    setGameOver(false);
   };
 
   const handleCardClick = (id) => {
-    if (flipped.length === 2 || solved.includes(id) || flipped.includes(id)) return;
+    if (flipped.length === 2 || solved.includes(id) || flipped.includes(id) || gameOver) return;
 
     const newFlipped = [...flipped, id];
     setFlipped(newFlipped);
 
     if (newFlipped.length === 2) {
       setMoves(m => m + 1);
-      const [first, second] = newFlipped;
+      const first = newFlipped[0];
+      const second = newFlipped[1];
+      
       if (cards[first].icon === cards[second].icon) {
-        setSolved([...solved, first, second]);
+        const newSolved = [...solved, first, second];
+        setSolved(newSolved);
         setFlipped([]);
+        
+        if (newSolved.length === cards.length) {
+          setGameOver(true);
+          if (onWin) onWin(moves < 20 ? 'player' : 'bot'); // "Win" if under 20 moves
+        }
       } else {
         setTimeout(() => setFlipped([]), 1000);
       }

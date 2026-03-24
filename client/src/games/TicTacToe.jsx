@@ -39,6 +39,7 @@ const TicTacToe = ({ mode = 'bot', onWin }) => {
       if (onWin) onWin('player');
     } else if (newBoard.every(sq => sq)) {
       setWinner('Draw');
+      if (onWin) onWin('draw');
     }
   };
 
@@ -59,15 +60,16 @@ const TicTacToe = ({ mode = 'bot', onWin }) => {
             setWinner(result.winner);
             setWinningLine(result.line);
             setScores(prev => ({ ...prev, opponent: prev.opponent + 1 }));
-            if (onWin) onWin('opponent');
+            if (onWin) onWin('bot');
           } else if (newBoard.every(sq => sq)) {
             setWinner('Draw');
+            if (onWin) onWin('draw');
           }
         }
       }, 600);
       return () => clearTimeout(timer);
     }
-  }, [isXNext, board, winner, mode]);
+  }, [isXNext, board, winner, mode, onWin]);
 
   const resetRound = () => {
     setBoard(Array(9).fill(null));

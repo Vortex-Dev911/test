@@ -15,11 +15,13 @@ const ParticleBackground = () => {
       canvas.height = window.innerHeight;
     };
 
-    window.addEventListener('resize', resize);
-    window.addEventListener('mousemove', (e) => {
+    const handleMouseMove = (e) => {
       mouse.x = e.x;
       mouse.y = e.y;
-    });
+    };
+
+    window.addEventListener('resize', resize);
+    window.addEventListener('mousemove', handleMouseMove);
 
     resize();
 
@@ -96,6 +98,7 @@ const ParticleBackground = () => {
 
     return () => {
       window.removeEventListener('resize', resize);
+      window.removeEventListener('mousemove', handleMouseMove);
       cancelAnimationFrame(animationFrameId);
     };
   }, []);

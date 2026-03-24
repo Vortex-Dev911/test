@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
-import { Gamepad2, Users, Trophy, UserCircle, LogOut, Menu, X } from 'lucide-react';
+import { Gamepad2, Users, Trophy, UserCircle, LogOut, Menu, X, Shield } from 'lucide-react';
 import { useState } from 'react';
 
 import { useAuth } from '../context/AuthContext';
@@ -41,10 +41,10 @@ const MainLayout = () => {
         </nav>
 
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-3 bg-dark-input px-4 py-2 rounded-full border border-dark-border">
+          <Link to="/profile" className="flex items-center gap-3 bg-dark-input px-4 py-2 rounded-full border border-dark-border hover:border-primary transition-colors">
             <UserCircle size={20} className="text-primary" />
             <span className="font-bold hidden sm:inline">{user.real_name || user.username}</span>
-          </div>
+          </Link>
           <button onClick={handleLogout} className="p-2 hover:bg-dark-input rounded-full transition-colors text-error">
             <LogOut size={20} />
           </button>

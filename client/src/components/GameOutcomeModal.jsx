@@ -7,7 +7,12 @@ const GameOutcomeModal = ({ winner, onPlayAgain, onExit, mode = 'bot' }) => {
   const isDraw = winner === 'Draw';
 
   React.useEffect(() => {
+    // Play sound effects
+    const winSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3');
+    const loseSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3');
+    
     if (isWin) {
+      winSound.play().catch(e => console.log('Audio play blocked'));
       const duration = 3 * 1000;
       const animationEnd = Date.now() + duration;
       const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
@@ -27,8 +32,10 @@ const GameOutcomeModal = ({ winner, onPlayAgain, onExit, mode = 'bot' }) => {
       }, 250);
       
       return () => clearInterval(interval);
+    } else if (!isDraw) {
+      loseSound.play().catch(e => console.log('Audio play blocked'));
     }
-  }, [isWin]);
+  }, [isWin, isDraw]);
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center bg-dark-bg/90 backdrop-blur-xl animate-fadeIn">
