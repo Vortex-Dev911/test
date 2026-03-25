@@ -3,11 +3,12 @@ import { Link } from 'react-router-dom';
 import { Gamepad2, Users, Trophy, Play, ChevronRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Navigate } from 'react-router-dom';
+import { Loading } from '../components/Shared';
 
 const Home = () => {
   const { user, loading } = useAuth();
 
-  if (loading) return null;
+  if (loading) return <Loading />;
   if (user) return <Navigate to="/dashboard" />;
 
   return (

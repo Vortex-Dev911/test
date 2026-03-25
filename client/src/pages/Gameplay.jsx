@@ -1,23 +1,30 @@
 import React, { Suspense, lazy, useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Trophy, Users, Info, Settings, Share2, History, MessageSquare, Gamepad2 } from 'lucide-react';
-import Loading from '../components/Loading';
+import { Loading } from '../components/Shared';
 import GameOutcomeModal from '../components/GameOutcomeModal';
-import axios from 'axios';
+import { api } from '../utils/shared';
 import { useAuth } from '../context/AuthContext';
-import { API_URL } from '../utils/api';
 
-// Lazy load games
-const TicTacToe = lazy(() => import('../games/TicTacToe'));
-const RockPaperScissors = lazy(() => import('../games/RockPaperScissors'));
-const Connect4 = lazy(() => import('../games/Connect4'));
-const Snake = lazy(() => import('../games/Snake'));
-const Pong = lazy(() => import('../games/Pong'));
-const Memory = lazy(() => import('../games/Memory'));
-const Trivia = lazy(() => import('../games/Trivia'));
-const Sudoku = lazy(() => import('../games/Sudoku'));
+// Consolidated game imports
+const ClassicGames = {
+  TicTacToe: lazy(() => import('../games/ClassicGames').then(m => ({ default: m.TicTacToe }))),
+  RockPaperScissors: lazy(() => import('../games/ClassicGames').then(m => ({ default: m.RockPaperScissors }))),
+  Connect4: lazy(() => import('../games/ClassicGames').then(m => ({ default: m.Connect4 })))
+};
+const ActionGames = {
+  Snake: lazy(() => import('../games/ActionGames').then(m => ({ default: m.Snake }))),
+  Pong: lazy(() => import('../games/ActionGames').then(m => ({ default: m.Pong })))
+};
+const PuzzleGames = {
+  Memory: lazy(() => import('../games/PuzzleGames').then(m => ({ default: m.Memory }))),
+  Trivia: lazy(() => import('../games/PuzzleGames').then(m => ({ default: m.Trivia }))),
+  Sudoku: lazy(() => import('../games/PuzzleGames').then(m => ({ default: m.Sudoku })))
+};
+const CardGames = {
+  Poker: lazy(() => import('../games/CardGames').then(m => ({ default: m.Poker })))
+};
 const ChessGame = lazy(() => import('../games/ChessGame'));
-const Poker = lazy(() => import('../games/Poker'));
 
 const Gameplay = () => {
   const { gameId } = useParams();
@@ -44,15 +51,12 @@ const Gameplay = () => {
   const recordMatch = async (winner) => {
     setOutcome(winner);
     try {
-      const token = localStorage.getItem('token');
       const userId = localStorage.getItem('userId');
-      await axios.post(`${API_URL}/api/games/record_match`, {
+      await api.post('/api/games/record_match', {
         game_id: gameId,
         p1_id: userId,
         p2_id: 'bot',
         winner_id: winner // 'player', 'bot', or 'draw'
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
       });
     } catch (err) {
       console.error('Failed to record match:', err);
@@ -60,16 +64,16 @@ const Gameplay = () => {
   };
 
   const games = {
-    tictactoe: { name: 'Tic Tac Toe', icon: '⭕', component: TicTacToe },
-    rps: { name: 'Rock Paper Scissors', icon: '✊', component: RockPaperScissors },
-    connect4: { name: 'Connect 4', icon: '🔴', component: Connect4 },
-    snake: { name: 'Snake Battle', icon: '🐍', component: Snake },
-    pong: { name: 'Pong', icon: '🏓', component: Pong },
-    memory: { name: 'Memory Match', icon: '🎴', component: Memory },
-    trivia: { name: 'Trivia Quiz', icon: '🧠', component: Trivia },
-    sudoku: { name: 'Sudoku', icon: '🔢', component: Sudoku },
+    tictactoe: { name: 'Tic Tac Toe', icon: '⭕', component: ClassicGames.TicTacToe },
+    rps: { name: 'Rock Paper Scissors', icon: '✊', component: ClassicGames.RockPaperScissors },
+    connect4: { name: 'Connect 4', icon: '🔴', component: ClassicGames.Connect4 },
+    snake: { name: 'Snake Battle', icon: '🐍', component: ActionGames.Snake },
+    pong: { name: 'Pong', icon: '🏓', component: ActionGames.Pong },
+    memory: { name: 'Memory Match', icon: '🎴', component: PuzzleGames.Memory },
+    trivia: { name: 'Trivia Quiz', icon: '🧠', component: PuzzleGames.Trivia },
+    sudoku: { name: 'Sudoku', icon: '🔢', component: PuzzleGames.Sudoku },
     chess: { name: 'Chess', icon: '♟️', component: ChessGame },
-    poker: { name: 'Poker', icon: '🃏', component: Poker },
+    poker: { name: 'Poker', icon: '🃏', component: CardGames.Poker },
     uno: { name: 'UNO', icon: '🎨', component: () => <div className="p-20 text-center card border-dashed border-primary/30"><h2 className="text-4xl font-black">UNO Engine Coming Soon</h2><p className="text-dark-muted font-bold mt-4">We are polishing the card dealer. Stay tuned!</p></div> },
     pool: { name: '8-Ball Pool', icon: '🎱', component: () => <div className="p-20 text-center card border-dashed border-primary/30"><h2 className="text-4xl font-black">Pool Engine Coming Soon</h2><p className="text-dark-muted font-bold mt-4">The physics engine is currently being tuned. Grab a cue later!</p></div> },
     darts: { name: 'Darts', icon: '🎯', component: () => <div className="p-20 text-center card border-dashed border-primary/30"><h2 className="text-4xl font-black">Darts Engine Coming Soon</h2><p className="text-dark-muted font-bold mt-4">Sharpening the tips. Don't blink!</p></div> }

@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Gamepad2, Users, Trophy, Play, Star, TrendingUp, History, Shield } from 'lucide-react';
-import axios from 'axios';
+import { api } from '../utils/shared';
 import { useAuth } from '../context/AuthContext';
-import { API_URL } from '../utils/api';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -12,10 +11,9 @@ const Dashboard = () => {
 
   const fetchData = useCallback(async () => {
     try {
-      const token = localStorage.getItem('token');
       const [matchesRes, leaderboardRes] = await Promise.all([
-        axios.get(`${API_URL}/api/users/matches`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API_URL}/api/users/leaderboard`)
+        api.get('/api/users/matches'),
+        api.get('/api/users/leaderboard')
       ]);
       setMatches(matchesRes.data);
       setLeaderboard(leaderboardRes.data);

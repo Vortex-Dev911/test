@@ -5,25 +5,31 @@ import { Trophy, RotateCcw, ChevronLeft, ChevronRight, User, Cpu } from 'lucide-
 
 const ChessGame = ({ onWin }) => {
   const [game, setGame] = useState(new Chess());
+  const [fen, setFen] = useState('start');
   const [moveHistory, setMoveHistory] = useState([]);
-  const [status, setStatus] = useState("White's Turn");
+  const [status, setStatus] = useState("Your Turn");
   const [gameOver, setGameOver] = useState(false);
 
   const makeAMove = useCallback((move) => {
     try {
-      const gameCopy = new Chess(game.fen());
-      const result = gameCopy.move(move);
-      
+      const result = game.move(move);
       if (result) {
-        setGame(gameCopy);
-        setMoveHistory(gameCopy.history());
+        setFen(game.fen());
+        setMoveHistory(game.history());
+        
+        if (game.isGameOver()) {
+          setGameOver(true);
+          const winner = game.isCheckmate() ? (game.turn() === 'w' ? 'bot' : 'player') : 'draw';
+          setStatus(game.isCheckmate() ? `Checkmate! ${winner === 'player' ? 'You' : 'Bot'} Wins` : "Draw!");
+          if (onWin) onWin(winner);
+        }
         return result;
       }
       return null;
     } catch (error) {
       return null;
     }
-  }, [game]);
+  }, [game, onWin]);
 
   function onDrop(sourceSquare, targetSquare) {
     if (gameOver || game.turn() === 'b') return false;
@@ -34,53 +40,31 @@ const ChessGame = ({ onWin }) => {
       promotion: "q",
     });
 
-    if (move === null) return false;
-    return true;
+    return move !== null;
   }
 
-  const checkGameOver = useCallback(() => {
-    if (game.isGameOver() && !gameOver) {
-      setGameOver(true);
-      if (game.isCheckmate()) {
-        const winner = game.turn() === 'w' ? 'bot' : 'player';
-        setStatus(`Checkmate! ${winner === 'player' ? 'You' : 'Bot'} Wins`);
-        if (onWin) onWin(winner);
-      } else if (game.isDraw()) {
-        setStatus("Draw!");
-        if (onWin) onWin('draw');
-      } else {
-        setStatus("Game Over");
-        if (onWin) onWin('draw');
-      }
-    }
-  }, [game, gameOver, onWin]);
-
   useEffect(() => {
-    checkGameOver();
-    
-    if (!game.isGameOver()) {
-      const turnStatus = game.turn() === 'w' ? "Your Turn" : "Bot is thinking...";
-      if (status !== turnStatus) setStatus(turnStatus);
-      
-      if (game.turn() === 'b' && !gameOver) {
-        const timer = setTimeout(() => {
-          const moves = game.moves();
-          if (moves.length > 0) {
-            const randomMove = moves[Math.floor(Math.random() * moves.length)];
-            makeAMove(randomMove);
-          }
-        }, 800);
-        return () => clearTimeout(timer);
-      }
+    if (!game.isGameOver() && game.turn() === 'b' && !gameOver) {
+      setStatus("Bot is thinking...");
+      const timer = setTimeout(() => {
+        const moves = game.moves();
+        if (moves.length > 0) {
+          const randomMove = moves[Math.floor(Math.random() * moves.length)];
+          makeAMove(randomMove);
+          if (!game.isGameOver()) setStatus("Your Turn");
+        }
+      }, 800);
+      return () => clearTimeout(timer);
     }
-  }, [game, makeAMove, gameOver, checkGameOver]);
+  }, [game, fen, makeAMove, gameOver]);
 
   const resetGame = () => {
     const newGame = new Chess();
     setGame(newGame);
+    setFen('start');
     setMoveHistory([]);
     setGameOver(false);
-    setStatus("White's Turn");
+    setStatus("Your Turn");
   };
 
   return (
@@ -143,13 +127,15 @@ const ChessGame = ({ onWin }) => {
         </div>
 
         <div className="card p-4 bg-[#262421] border-dark-border shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
-          <Chessboard 
-            position={game.fen()} 
-            onPieceDrop={onDrop} 
-            boardOrientation="white"
-            customDarkSquareStyle={{ backgroundColor: '#779556' }}
-            customLightSquareStyle={{ backgroundColor: '#ebecd0' }}
-          />
+          <div className="w-full aspect-square max-w-[600px] mx-auto">
+            <Chessboard 
+              position={fen} 
+              onPieceDrop={onDrop} 
+              boardOrientation="white"
+              customDarkSquareStyle={{ backgroundColor: '#779556' }}
+              customLightSquareStyle={{ backgroundColor: '#ebecd0' }}
+            />
+          </div>
         </div>
       </div>
 

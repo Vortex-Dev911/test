@@ -6,6 +6,8 @@ exports.up = function(knex) {
       table.string('email').unique().notNullable();
       table.string('password').notNullable();
       table.string('real_name');
+      table.string('avatar_url');
+      table.boolean('is_private').defaultTo(false);
       table.integer('level').defaultTo(1);
       table.integer('xp').defaultTo(0);
       table.timestamp('created_at').defaultTo(knex.fn.now());

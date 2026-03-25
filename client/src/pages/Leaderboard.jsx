@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Trophy, Star, TrendingUp, TrendingDown, Search, Filter } from 'lucide-react';
-import { API_URL } from '../utils/api';
+import { api } from '../utils/shared';
 
 const Leaderboard = () => {
   const [players, setPlayers] = useState([]);
@@ -9,7 +8,7 @@ const Leaderboard = () => {
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
-        const res = await axios.get(`${API_URL}/api/users/leaderboard`);
+        const res = await api.get('/api/users/leaderboard');
         setPlayers(res.data);
       } catch (err) {
         console.error('Error fetching leaderboard:', err);

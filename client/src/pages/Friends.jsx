@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Users, UserPlus, MessageSquare, Search, Trophy, Check, Clock, Gamepad2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { io } from 'socket.io-client';
 import { useNavigate } from 'react-router-dom';
-import { API_URL, SOCKET_URL } from '../utils/api';
+import { api, getSocket } from '../utils/shared';
 
 import Messaging from '../components/Messaging';
 
@@ -23,21 +21,17 @@ const Friends = () => {
 
   const challengeFriend = async (friendId, gameId = 'tictactoe') => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.post(`${API_URL}/api/games/challenge`, { friendId, gameId }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.post('/api/games/challenge', { friendId, gameId });
       const { roomId } = res.data;
       
       // Emit socket event
-      const socket = io(SOCKET_URL);
+      const socket = getSocket();
       socket.emit('challenge_player', { 
         challenger: user.username, 
         challenged: friends.find(f => f.id === friendId).username,
         gameId,
         roomId
       });
-      socket.disconnect();
 
       navigate(`/play/${gameId}?room=${roomId}`);
     } catch (err) {
@@ -48,10 +42,7 @@ const Friends = () => {
 
   const fetchFriends = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get(`${API_URL}/api/friends/list`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get('/api/friends/list');
       setFriends(res.data);
     } catch (err) {
       console.error('Error fetching friends:', err);
@@ -67,10 +58,7 @@ const Friends = () => {
       return;
     }
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get(`${API_URL}/api/users/search?q=${query}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get(`/api/users/search?q=${query}`);
       setSearchResults(res.data.filter(u => u.id !== user.id));
     } catch (err) {
       console.error('Error searching users:', err);
@@ -79,18 +67,14 @@ const Friends = () => {
 
   const sendFriendRequest = async (friendId) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(`${API_URL}/api/friends/request`, { friendId }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.post('/api/friends/request', { friendId });
       
       // Emit socket event for real-time notification
-      const socket = io(SOCKET_URL);
+      const socket = getSocket();
       socket.emit('friend_request', { 
         receiverId: friendId, 
         senderName: user.real_name || user.username 
       });
-      socket.disconnect();
 
       alert('Friend request sent!');
     } catch (err) {

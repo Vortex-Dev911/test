@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
-import { Send, MessageSquare, X } from 'lucide-react';
+import { Send, MessageSquare, X, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { io } from 'socket.io-client';
-import { API_URL, SOCKET_URL } from '../utils/api';
+import { api, getSocket } from '../utils/shared';
 
 const Messaging = ({ friend, onClose }) => {
     const { user } = useAuth();
@@ -18,7 +16,7 @@ const Messaging = ({ friend, onClose }) => {
     useEffect(() => {
         fetchMessages();
         
-        socketRef.current = io(SOCKET_URL);
+        socketRef.current = getSocket();
         socketRef.current.emit('join_chat', user.id);
 
         socketRef.current.on('receive_message', (message) => {
@@ -39,9 +37,9 @@ const Messaging = ({ friend, onClose }) => {
         });
 
         return () => {
-            socketRef.current.disconnect();
+            // socketRef.current.disconnect(); // Don't disconnect shared socket
         };
-    }, [friend.id]);
+    }, [friend.id, user.id]);
 
     useEffect(() => {
         scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -61,10 +59,7 @@ const Messaging = ({ friend, onClose }) => {
 
     const fetchMessages = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get(`${API_URL}/api/messages/${friend.id}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await api.get(`/api/messages/${friend.id}`);
             setMessages(res.data);
         } catch (err) {
             console.error('Error fetching messages:', err);
@@ -77,30 +72,20 @@ const Messaging = ({ friend, onClose }) => {
         e.preventDefault();
         if (!newMessage.trim()) return;
 
-        const messageData = {
-            receiverId: friend.id,
-            content: newMessage,
-            sender_id: user.id,
-            created_at: new Date().toISOString()
-        };
-
-        // Optimistic UI update
-        setMessages(prev => [...prev, messageData]);
-        setNewMessage('');
-
         try {
-            const token = localStorage.getItem('token');
-            await axios.post(`${API_URL}/api/messages/send`, {
+            const res = await api.post('/api/messages/send', {
                 receiverId: friend.id,
                 content: newMessage
-            }, {
-                headers: { Authorization: `Bearer ${token}` }
             });
+            setMessages(prev => [...prev, res.data]);
+            setNewMessage('');
             
-            socketRef.current.emit('send_message', messageData);
+            socketRef.current.emit('send_message', {
+                ...res.data,
+                receiverId: friend.id
+            });
         } catch (err) {
             console.error('Error sending message:', err);
-            // Optionally: handle error (remove optimistically added message)
         }
     };
 
